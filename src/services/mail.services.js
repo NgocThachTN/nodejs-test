@@ -2,14 +2,14 @@
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-    service: "gmail", // Hoặc service khác
+    service: "gmail",
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        pass: process.env.EMAIL_PASS.trim(), // Trim space
     },
 });
 
-const sendResetEmail = async (email, resetLink) => {
+const sendResetEmail = async (email, message) => {
     const htmlContent = `
     <!DOCTYPE html>
     <html lang="vi">
@@ -43,16 +43,6 @@ const sendResetEmail = async (email, resetLink) => {
                 padding: 20px;
                 text-align: center;
             }
-            .button {
-                display: inline-block;
-                background-color: #28a745;
-                color: #ffffff;
-                padding: 12px 24px;
-                text-decoration: none;
-                border-radius: 5px;
-                font-weight: bold;
-                margin: 20px 0;
-            }
             .footer {
                 text-align: center;
                 color: #666666;
@@ -68,12 +58,7 @@ const sendResetEmail = async (email, resetLink) => {
                 <h1>Reset Mật Khẩu</h1>
             </div>
             <div class="content">
-                <p>Chào bạn,</p>
-                <p>Bạn đã yêu cầu reset mật khẩu cho tài khoản của mình.</p>
-                <p>Nhấn vào nút bên dưới để đặt lại mật khẩu:</p>
-                <a href="${resetLink}" class="button">Reset Mật Khẩu</a>
-                <p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
-                <p>Link này sẽ hết hạn sau 15 phút.</p>
+                <p>${message}</p>
             </div>
             <div class="footer">
                 <p>© 2025 Node.js Test API. Tất cả quyền được bảo lưu.</p>
@@ -86,11 +71,17 @@ const sendResetEmail = async (email, resetLink) => {
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
-        subject: "Reset Mật Khẩu - Node.js Test API",
+        subject: "OTP Reset Mật Khẩu - Node.js Test API",
         html: htmlContent,
     };
 
-    await transporter.sendMail(mailOptions);
+    try {
+        await transporter.sendMail(mailOptions);
+        // console.log(`Email sent to ${email}`);
+    } catch (error) {
+        // console.error(`Error sending email to ${email}:`, error);
+        throw new Error("Không thể gửi email");
+    }
 };
 
 module.exports = { sendResetEmail };

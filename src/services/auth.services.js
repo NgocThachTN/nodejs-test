@@ -47,28 +47,26 @@ class AuthService {
         const user = await User.findOne({ where: { email } });
         if (!user) throw new Error("Email không tồn tại");
 
-        const resetToken = jwt.sign(
-            { userId: user.userId, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: "15m" } // Token reset ngắn hơn
-        );
+        const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+        const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+        await user.update({ otp, otpExpires });
 
-        await sendResetEmail(email, resetLink);
+        console.log(`Sending OTP ${otp} to ${email}`);
+        await sendResetEmail(email, `Mã OTP của bạn là: ${otp}. Mã này hết hạn sau 10 phút.`);
+        console.log(`OTP sent to ${email}`);
     }
 
-    async resetPassword(token, newPassword) {
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const user = await User.findByPk(decoded.userId);
-            if (!user) throw new Error("User không tồn tại");
+    async resetPassword(email, otp, newPassword) {
+        const user = await User.findOne({ where: { email } });
+        if (!user) throw new Error("User không tồn tại");
 
-            const hash = await bcrypt.hash(newPassword, 10);
-            await user.update({ passwordHash: hash });
-        } catch (err) {
-            throw new Error("Token không hợp lệ hoặc đã hết hạn");
+        if (user.otp !== otp || user.otpExpires < new Date()) {
+            throw new Error("OTP không hợp lệ hoặc đã hết hạn");
         }
+
+        const hash = await bcrypt.hash(newPassword, 10);
+        await user.update({ passwordHash: hash, otp: null, otpExpires: null });
     }
 
     async changePassword(userId, oldPassword, newPassword) {

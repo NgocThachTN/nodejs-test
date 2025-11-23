@@ -22,6 +22,12 @@ const User = sequelize.define(
     fullname: {
       type: DataTypes.STRING,
     },
+    otp: {
+      type: DataTypes.STRING,
+    },
+    otpExpires: {
+      type: DataTypes.DATE,
+    },
   },
   {
     tableName: "Users",

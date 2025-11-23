@@ -62,8 +62,8 @@
 
 - `POST /api/auth/login` - Đăng nhập
 - `POST /api/auth/register` - Đăng ký
-- `POST /api/auth/forgot-password` - Quên mật khẩu
-- `POST /api/auth/reset-password` - Reset mật khẩu
+- `POST /api/auth/forgot-password` - Quên mật khẩu (gửi OTP qua email)
+- `POST /api/auth/reset-password` - Reset mật khẩu với OTP
 - `POST /api/auth/change-password` - Đổi mật khẩu (cần JWT token)
 - `GET /api/users` - Lấy danh sách người dùng (cần xác thực)
 - Các endpoint khác được mô tả trong Swagger Docs.

@@ -87,8 +87,8 @@ router.post("/forgot-password", controller.forgotPassword);
  * /api/auth/reset-password:
  *   post:
  *     tags: ["Authentication"]
- *     summary: Reset mật khẩu
- *     description: Đặt lại mật khẩu với token
+ *     summary: Reset mật khẩu với OTP
+ *     description: Đặt lại mật khẩu với OTP từ email
  *     requestBody:
  *       required: true
  *       content:
@@ -96,7 +96,9 @@ router.post("/forgot-password", controller.forgotPassword);
  *           schema:
  *             type: object
  *             properties:
- *               token:
+ *               email:
+ *                 type: string
+ *               otp:
  *                 type: string
  *               newPassword:
  *                 type: string
