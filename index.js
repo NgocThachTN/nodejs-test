@@ -40,7 +40,15 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Swagger UI
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", (req, res, next) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self'; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline'; img-src 'self' data:;");
+  next();
+}, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Route cho root
+app.get("/", (req, res) => {
+  res.json({ message: "API is running! Visit /api-docs for documentation." });
+});
 
 // ------------------ ROUTES ----------------------
 app.use("/api/auth", authRoute);
