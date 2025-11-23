@@ -44,11 +44,22 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Swagger UI
-app.use("/api", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api/swagger.html", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  deepLinking: false,
+  docExpansion: 'none',
+  filter: false,
+  showExtensions: false,
+  showCommonExtensions: false,
+  defaultModelsExpandDepth: -1,
+  defaultModelExpandDepth: -1,
+  displayRequestDuration: false,
+  tryItOutEnabled: true,
+  layout: 'BaseLayout'
+}));
 
 // Route cho root
 app.get("/", (req, res) => {
-  res.json({ message: "API is running! Visit /api-docs for documentation." });
+  res.json({ message: "API is running! Visit /api/swagger.html for documentation." });
 });
 
 // ------------------ ROUTES ----------------------
@@ -87,5 +98,5 @@ sequelize
 // ------------------ START SERVER -----------------
 app.listen(port, () => {
   console.log(`Server chạy trên port ${port}`);
-  console.log(`Swagger docs: https://${process.env.RENDER_EXTERNAL_URL || 'your-render-url.onrender.com'}/api-docs`);
+  console.log(`Swagger docs: https://${process.env.RENDER_EXTERNAL_URL || 'your-render-url.onrender.com'}/api/swagger.html`);
 });
