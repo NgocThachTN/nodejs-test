@@ -76,12 +76,19 @@ app.get("/api/auth", (req, res) => {
 })
 // ------------------ SYNC DB ----------------------
 sequelize
-  .sync({ alter: true })
-  .then(() => console.log(" DB synced!"))
-  .catch((err) => console.error("DB error:", err));
+  .authenticate()
+  .then(() => {
+    console.log("DB connected!");
+    return sequelize.sync({ alter: true });
+  })
+  .then(() => console.log("DB synced!"))
+  .catch((err) => {
+    console.error("DB error:", err);
+    process.exit(1); // Exit if DB fail
+  });
 
 // ------------------ START SERVER -----------------
 app.listen(port, () => {
-  console.log(`Server chạy: http://localhost:${port}`);
-  console.log(`Swagger docs: http://localhost:${port}/api-docs`);
+  console.log(`Server chạy trên port ${port}`);
+  console.log(`Swagger docs: https://${process.env.RENDER_EXTERNAL_URL || 'your-render-url.onrender.com'}/api-docs`);
 });
