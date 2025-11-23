@@ -34,7 +34,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production' ? `https://${process.env.RENDER_EXTERNAL_URL || 'nodejs-test-api-o7bd.onrender.com'}` : "http://localhost:3000",
+        url: process.env.NODE_ENV === 'production' ? (process.env.RENDER_EXTERNAL_URL || 'https://nodejs-test-api-o7bd.onrender.com') : "http://localhost:3000",
       },
     ],
   },
@@ -44,10 +44,7 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Swagger UI
-app.use("/api-docs", (req, res, next) => {
-  res.setHeader('Content-Security-Policy', "default-src 'self'; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-inline'; img-src 'self' data:;");
-  next();
-}, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Route cho root
 app.get("/", (req, res) => {
