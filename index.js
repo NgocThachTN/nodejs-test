@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
 
@@ -15,6 +16,9 @@ const userRoute = require("./src/routes/user.routes");
 
 const app = express();
 const port = 3000;
+
+// Enable CORS
+app.use(cors());
 
 // Middleware đọc JSON
 app.use(express.json());
