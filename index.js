@@ -34,7 +34,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: "http://localhost:3000",
+        url: process.env.NODE_ENV === 'production' ? `https://${process.env.RENDER_EXTERNAL_URL || 'nodejs-test-api-o7bd.onrender.com'}` : "http://localhost:3000",
       },
     ],
   },
