@@ -56,7 +56,7 @@ app.get("/", (req, res) => {
 
 // ------------------ ROUTES ----------------------
 app.use("/api/auth", authRoute);
-app.use("/api/users", userRoute); 
+app.use("/api/users", userRoute);
 // Example Hello API
 /**
  * @swagger
