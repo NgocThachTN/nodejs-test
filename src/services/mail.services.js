@@ -19,7 +19,7 @@ if (process.env.NODE_ENV === 'production') {
 
     const accessToken = oauth2Client.getAccessToken();
 
-    transporter = nodemailer.createTransporter({
+    transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
             type: 'OAuth2',
