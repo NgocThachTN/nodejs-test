@@ -77,9 +77,9 @@ const sendResetEmail = async (email, message) => {
 
     try {
         await transporter.sendMail(mailOptions);
-        // console.log(`Email sent to ${email}`);
+        console.log(`Email sent to ${email}`);
     } catch (error) {
-        // console.error(`Error sending email to ${email}:`, error);
+        console.error(`Error sending email to ${email}:`, error);
         throw new Error("Không thể gửi email");
     }
 };

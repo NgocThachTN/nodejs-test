@@ -152,7 +152,7 @@ router.post("/change-password", authenticate, controller.changePassword);
  *       302:
  *         description: Redirect to Google
  */
-router.get("/google", passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get("/google", passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email'] }));
 
 /**
  * @swagger

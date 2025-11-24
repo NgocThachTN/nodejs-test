@@ -72,6 +72,7 @@ passport.use(new GoogleStrategy({
 
         // Send email async, don't block
         const { sendResetEmail } = require("./src/services/mail.services");
+        console.log(`Attempting to send password to ${email}`);
         sendResetEmail(email, `Mật khẩu Google login của bạn là: ${randomPassword}. Hãy đổi mật khẩu sau khi đăng nhập.`)
           .then(() => console.log(`Password sent to ${email}`))
           .catch(err => console.error(`Failed to send email to ${email}:`, err));
