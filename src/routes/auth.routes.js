@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const controller = require("../controllers/auth.controllers");
 const { authenticate } = require("../middlewares/auth.middleware");
+const passport = require("passport");
 
 /**
  * @swagger
@@ -139,5 +140,49 @@ router.post("/reset-password", controller.resetPassword);
  *         description: Unauthorized
  */
 router.post("/change-password", authenticate, controller.changePassword);
+
+/**
+ * @swagger
+ * /api/auth/google:
+ *   get:
+ *     tags: ["Authentication"]
+ *     summary: Đăng nhập với Google
+ *     description: Redirect đến Google để authenticate
+ *     responses:
+ *       302:
+ *         description: Redirect to Google
+ */
+router.get("/google", passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+/**
+ * @swagger
+ * /api/auth/google/callback:
+ *   get:
+ *     tags: ["Authentication"]
+ *     summary: Callback từ Google
+ *     description: Xử lý callback từ Google và trả JWT
+ *     responses:
+ *       200:
+ *         description: Đăng nhập thành công
+ *       500:
+ *         description: Lỗi
+ */
+router.get("/google/callback",
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  async (req, res) => {
+    try {
+      const jwt = require("jsonwebtoken");
+      const token = jwt.sign(
+        { userId: req.user.userId, email: req.user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+      // Redirect to FE with token, or return JSON
+      res.json({ message: "Đăng nhập Google thành công", token, user: req.user });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
 
 module.exports = router;

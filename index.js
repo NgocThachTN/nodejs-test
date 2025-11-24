@@ -3,6 +3,9 @@ const express = require("express");
 const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const session = require("express-session");
 
 // Kết nối DB
 const sequelize = require("./src/config/database");
@@ -24,10 +27,78 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Enable CORS
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
+// Session middleware for Passport
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
 
 // Middleware đọc JSON
 app.use(express.json());
+
+// Passport config
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: process.env.NODE_ENV === 'production'
+    ? `${process.env.RENDER_EXTERNAL_URL}/api/auth/google/callback`
+    : "http://localhost:3000/api/auth/google/callback"
+},
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+      const User = require("./src/model/user.model");
+      const email = profile.emails[0].value;
+      const fullname = profile.displayName;
+
+      let user = await User.findOne({ where: { email } });
+      if (!user) {
+        // Generate random password
+        const randomPassword = Math.random().toString(36).slice(-8); // 8 chars
+        const bcrypt = require("bcrypt");
+        const hash = await bcrypt.hash(randomPassword, 10);
+
+        user = await User.create({
+          email,
+          passwordHash: hash,
+          fullname,
+        });
+
+        // Send email with password
+        const { sendResetEmail } = require("./src/services/mail.services");
+        console.log(`Sending password to ${email}: ${randomPassword}`);
+        await sendResetEmail(email, `Mật khẩu Google login của bạn là: ${randomPassword}. Hãy đổi mật khẩu sau khi đăng nhập.`);
+        console.log(`Password sent to ${email}`);
+      }
+
+      return done(null, user);
+    } catch (err) {
+      return done(err, null);
+    }
+  }
+));
+
+passport.serializeUser((user, done) => {
+  done(null, user.userId);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const User = require("./src/model/user.model");
+    const user = await User.findByPk(id);
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
+});
+
+app.use(passport.initialize());
 
 // Swagger config
 const swaggerOptions = {
