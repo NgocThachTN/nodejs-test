@@ -80,14 +80,16 @@ class AuthService {
 
         return { message: "OTP hợp lệ" };
     }
-    const user = await User.findByPk(userId);
-    if(!user) throw new Error("User không tồn tại");
 
-const match = await bcrypt.compare(oldPassword, user.passwordHash);
-if (!match) throw new Error("Mật khẩu cũ không đúng");
+    async changePassword(userId, oldPassword, newPassword) {
+        const user = await User.findByPk(userId);
+        if (!user) throw new Error("User không tồn tại");
 
-const hash = await bcrypt.hash(newPassword, 10);
-await user.update({ passwordHash: hash });
+        const match = await bcrypt.compare(oldPassword, user.passwordHash);
+        if (!match) throw new Error("Mật khẩu cũ không đúng");
+
+        const hash = await bcrypt.hash(newPassword, 10);
+        await user.update({ passwordHash: hash });
     }
 }
 
