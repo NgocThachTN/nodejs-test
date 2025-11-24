@@ -74,8 +74,21 @@ class AuthService {
         const user = await User.findOne({ where: { email } });
         if (!user) throw new Error("User không tồn tại");
 
-        if (user.otp !== otp || user.otpExpires < new Date()) {
+        // Trim OTP để tránh space
+        const trimmedOtp = otp.trim();
+
+        console.log(`Verifying OTP for ${email}: input=${trimmedOtp}, stored=${user.otp}, expires=${user.otpExpires}, now=${new Date()}`);
+
+        // Kiểm tra OTP có tồn tại và chưa hết hạn
+        if (!user.otp || user.otpExpires < new Date()) {
+            console.log(`OTP invalid: otp=${user.otp}, expires=${user.otpExpires}, now=${new Date()}`);
             throw new Error("OTP không hợp lệ hoặc đã hết hạn");
+        }
+
+        // So sánh OTP
+        if (user.otp !== trimmedOtp) {
+            console.log(`OTP mismatch: stored=${user.otp}, input=${trimmedOtp}`);
+            throw new Error("OTP không hợp lệ");
         }
 
         return { message: "OTP hợp lệ" };
