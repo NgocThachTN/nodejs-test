@@ -46,6 +46,16 @@ class AuthController {
         }
     }
 
+    async verifyOtp(req, res) {
+        try {
+            const { email, otp } = req.body;
+            const result = await authService.verifyOtp(email, otp);
+            res.json(result);
+        } catch (err) {
+            res.status(400).json({ message: err.message });
+        }
+    }
+
     async changePassword(req, res) {
         try {
             const { oldPassword, newPassword } = req.body;

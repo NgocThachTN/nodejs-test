@@ -113,6 +113,32 @@ router.post("/reset-password", controller.resetPassword);
 
 /**
  * @swagger
+ * /api/auth/verify-otp:
+ *   post:
+ *     tags: ["Authentication"]
+ *     summary: Xác nhận OTP
+ *     description: Kiểm tra OTP hợp lệ
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OTP hợp lệ
+ *       400:
+ *         description: OTP không hợp lệ
+ */
+router.post("/verify-otp", controller.verifyOtp);
+
+/**
+ * @swagger
  * /api/auth/change-password:
  *   post:
  *     tags: ["Authentication"]

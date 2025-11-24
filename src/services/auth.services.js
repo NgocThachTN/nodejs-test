@@ -73,7 +73,16 @@ class AuthService {
         await user.update({ passwordHash: hash, otp: null, otpExpires: null });
     }
 
-    async changePassword(userId, oldPassword, newPassword) {
+    async verifyOtp(email, otp) {
+        const user = await User.findOne({ where: { email } });
+        if (!user) throw new Error("User không tồn tại");
+
+        if (user.otp !== otp || user.otpExpires < new Date()) {
+            throw new Error("OTP không hợp lệ hoặc đã hết hạn");
+        }
+
+        return { message: "OTP hợp lệ" };
+    }
         const user = await User.findByPk(userId);
         if (!user) throw new Error("User không tồn tại");
 
