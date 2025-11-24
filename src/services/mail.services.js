@@ -1,15 +1,47 @@
 // src/services/mail.services.js
 const nodemailer = require("nodemailer");
+const { google } = require("googleapis");
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : '',
-    },
-    debug: true, // Enable debug
-    logger: true, // Enable logger
-});
+let transporter;
+
+if (process.env.NODE_ENV === 'production') {
+    // Use Gmail API for production (Onrender)
+    const OAuth2 = google.auth.OAuth2;
+    const oauth2Client = new OAuth2(
+        process.env.GMAIL_CLIENT_ID,
+        process.env.GMAIL_CLIENT_SECRET,
+        "https://developers.google.com/oauthplayground"
+    );
+
+    oauth2Client.setCredentials({
+        refresh_token: process.env.GMAIL_REFRESH_TOKEN
+    });
+
+    const accessToken = oauth2Client.getAccessToken();
+
+    transporter = nodemailer.createTransporter({
+        service: 'gmail',
+        auth: {
+            type: 'OAuth2',
+            user: process.env.EMAIL_USER,
+            clientId: process.env.GMAIL_CLIENT_ID,
+            clientSecret: process.env.GMAIL_CLIENT_SECRET,
+            refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+            accessToken: accessToken
+        }
+    });
+} else {
+    // Use SMTP for local
+    transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : '',
+        },
+        debug: true,
+        logger: true,
+    });
+}
 
 // Test transporter on startup
 transporter.verify((error, success) => {
