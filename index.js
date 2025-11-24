@@ -11,12 +11,14 @@ const sequelize = require("./src/config/database");
 require("./src/model/user.model");
 require("./src/model/comment.model");
 require("./src/model/favorite.model");
+require("./src/model/readingHistory.model");
 
 // Import routes
 const authRoute = require("./src/routes/auth.routes");
 const userRoute = require("./src/routes/user.routes");
 const commentRoute = require("./src/routes/comment.routes");
 const favoriteRoute = require("./src/routes/favorite.routes");
+const readingHistoryRoute = require("./src/routes/readingHistory.routes");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -80,6 +82,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/favorites", favoriteRoute);
+app.use("/api/reading-history", readingHistoryRoute);
 // Example Hello API
 /**
  * @swagger
