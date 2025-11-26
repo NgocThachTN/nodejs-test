@@ -5,7 +5,7 @@
 ## Tính năng chính
 
 - Authentication: Đăng ký/đăng nhập với OTP email, đăng nhập Google OAuth2
-- User Management: Quản lý profile người dùng
+- User Management: Quản lý profile người dùng, upload avatar
 - Comments: Hệ thống bình luận cho truyện
 - Favorites: Danh sách truyện yêu thích
 - Reading History: Lịch sử đọc truyện
@@ -65,6 +65,9 @@
    GOOGLE_CLIENT_ID=your_google_client_id
    GOOGLE_CLIENT_SECRET=your_google_client_secret
 
+   # Firebase (cho upload avatar)
+   FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+
    # Production
    NODE_ENV=development
    RENDER_EXTERNAL_URL=https://your-render-url.onrender.com
@@ -77,9 +80,18 @@
    - `FRONTEND_URL/FE_URL`: URL của frontend
    - `SESSION_SECRET`: Khóa cho session middleware
    - `GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET`: Credentials từ Google Console (tùy chọn)
+   - `FIREBASE_STORAGE_BUCKET`: Tên bucket Firebase Storage (tùy chọn cho avatar)
    - `NODE_ENV/RENDER_EXTERNAL_URL`: Cho production deployment
 
-5. **Chạy ứng dụng:**
+5. **Thiết lập Firebase (tùy chọn cho upload avatar):**
+
+   - Tạo project Firebase tại https://console.firebase.google.com/
+   - Bật Firebase Storage
+   - Tải file service account key JSON từ Project Settings > Service accounts
+   - Đặt file `serviceAccountKey.json` vào thư mục `src/config/`
+   - Thêm `FIREBASE_STORAGE_BUCKET` vào `.env` (tên bucket, ví dụ: `your-project.appspot.com`)
+
+6. **Chạy ứng dụng:**
    ```bash
    npm start
    ```
@@ -108,6 +120,7 @@
 - `GET /api/users` - Lấy danh sách người dùng (cần xác thực)
 - `GET /api/users/profile` - Lấy thông tin profile (cần JWT)
 - `PUT /api/users/profile` - Cập nhật profile (cần JWT)
+- `POST /api/profile/avatar` - Upload avatar (cần JWT)
 
 ### Comments
 - `POST /api/comments` - Thêm comment (cần JWT)

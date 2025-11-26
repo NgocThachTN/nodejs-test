@@ -27,6 +27,10 @@ const User = sequelize.define(
       defaultValue: 'user',
       allowNull: false,
     },
+    avatar: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     otp: {
       type: DataTypes.STRING,
       allowNull: true,

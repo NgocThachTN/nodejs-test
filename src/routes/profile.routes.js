@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const profileController = require("../controllers/profile.controllers");
+const { ProfileController, upload } = require("../controllers/profile.controllers");
 const { authenticate } = require("../middlewares/auth.middleware");
 
 /**
@@ -125,8 +125,44 @@ const { authenticate } = require("../middlewares/auth.middleware");
  *         description: Chưa đăng nhập
  *       500:
  *         description: Lỗi server
+ *   post:
+ *     tags: ["Profile"]
+ *     summary: Upload avatar cho user hiện tại
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *                 description: File hình ảnh avatar (max 5MB)
+ *     responses:
+ *       200:
+ *         description: Avatar đã được upload
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 avatar:
+ *                   type: string
+ *       400:
+ *         description: Lỗi khi upload avatar
+ *       401:
+ *         description: Chưa đăng nhập
+ *       500:
+ *         description: Lỗi server
  */
-router.get("/", authenticate, profileController.getProfile);
-router.put("/", authenticate, profileController.updateProfile);
+router.get("/", authenticate, ProfileController.getProfile);
+router.put("/", authenticate, ProfileController.updateProfile);
+router.post("/", authenticate, upload.single('avatar'), ProfileController.uploadAvatar);
+router.post("/avatar", authenticate, upload.single('avatar'), ProfileController.uploadAvatar);
 
 module.exports = router;

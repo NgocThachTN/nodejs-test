@@ -1,6 +1,8 @@
 const User = require("../model/user.model");
 const FavoriteService = require("./favorite.services");
 const ReadingHistoryService = require("./readingHistory.services");
+const firebaseConfig = require("../config/firebase");
+const { v4: uuidv4 } = require('uuid');
 
 class ProfileService {
     async getProfile(userId) {
@@ -45,6 +47,39 @@ class ProfileService {
             return userWithoutPassword;
         } catch (error) {
             throw new Error(`Lỗi khi cập nhật profile: ${error.message}`);
+        }
+    }
+
+    async uploadAvatar(userId, file) {
+        try {
+            if (!firebaseConfig) throw new Error("Firebase chưa được cấu hình. Vui lòng thiết lập serviceAccountKey.json và FIREBASE_STORAGE_BUCKET.");
+
+            const { bucket } = firebaseConfig;
+            if (!file) throw new Error("Không có file được upload");
+
+            // Tạo tên file duy nhất
+            const fileName = `avatars/${userId}_${Date.now()}_${file.originalname}`;
+            const fileUpload = bucket.file(fileName);
+
+            // Upload file lên Firebase Storage
+            await fileUpload.save(file.buffer, {
+                metadata: {
+                    contentType: file.mimetype,
+                },
+            });
+
+            // Làm file public và lấy URL
+            await fileUpload.makePublic();
+            const url = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+
+            // Cập nhật avatar trong DB
+            const user = await User.findByPk(userId);
+            if (!user) throw new Error("User không tồn tại");
+
+            await user.update({ avatar: url });
+            return { avatar: url };
+        } catch (error) {
+            throw new Error(`Lỗi khi upload avatar: ${error.message}`);
         }
     }
 }
