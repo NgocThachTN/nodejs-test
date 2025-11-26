@@ -45,11 +45,22 @@ class CommentService {
             include: [{
                 model: User,
                 as: 'user',
-                attributes: ['userId', 'fullname']
+                attributes: ['userId', 'fullname', 'avatar', 'lastSeenAt']
             }],
             order: [['createdAt', 'DESC']],
         });
-        return comments;
+
+        // Thêm isOnline cho mỗi comment
+        const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000);
+        const commentsWithOnline = comments.map(comment => {
+            const commentData = comment.toJSON();
+            commentData.user.isOnline = commentData.user.lastSeenAt && commentData.user.lastSeenAt > threeMinutesAgo;
+            // Xóa lastSeenAt khỏi response nếu không cần
+            delete commentData.user.lastSeenAt;
+            return commentData;
+        });
+
+        return commentsWithOnline;
     }
 }
 
