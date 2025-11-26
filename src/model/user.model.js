@@ -31,6 +31,10 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    lastSeenAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
     otp: {
       type: DataTypes.STRING,
       allowNull: true,
