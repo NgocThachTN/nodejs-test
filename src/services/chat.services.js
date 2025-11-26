@@ -18,6 +18,45 @@ const getMessagesBetweenUsers = async (userId1, userId2) => {
     }
 };
 
+// Lấy danh sách cuộc trò chuyện của user
+const getConversationsForUser = async (userId) => {
+    try {
+        const messages = await Message.findAll({
+            where: {
+                [require('sequelize').Op.or]: [
+                    { senderId: userId },
+                    { receiverId: userId }
+                ]
+            },
+            include: [
+                { model: require('../model/user.model'), as: 'sender', attributes: ['userId', 'fullname', 'avatar'] },
+                { model: require('../model/user.model'), as: 'receiver', attributes: ['userId', 'fullname', 'avatar'] }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        const conversations = {};
+        messages.forEach(msg => {
+            const otherUserId = msg.senderId === userId ? msg.receiverId : msg.senderId;
+            const otherUser = msg.senderId === userId ? msg.receiver : msg.sender;
+            if (!conversations[otherUserId]) {
+                conversations[otherUserId] = {
+                    user: otherUser,
+                    lastMessage: msg,
+                    unreadCount: 0
+                };
+            }
+            if (!msg.isRead && msg.receiverId === userId) {
+                conversations[otherUserId].unreadCount++;
+            }
+        });
+
+        return Object.values(conversations);
+    } catch (err) {
+        throw new Error('Lỗi khi lấy cuộc trò chuyện: ' + err.message);
+    }
+};
+
 // Gửi tin nhắn
 const sendMessage = async (senderId, receiverId, message) => {
     try {
@@ -55,6 +94,7 @@ const markMessagesAsRead = async (senderId, receiverId) => {
 
 module.exports = {
     getMessagesBetweenUsers,
+    getConversationsForUser,
     sendMessage,
     markMessagesAsRead,
 };

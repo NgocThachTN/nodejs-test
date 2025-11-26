@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { getMessages, sendMessageController, markAsRead } = require('../controllers/chat.controllers');
+const { getMessages, getConversations, sendMessageController, markAsRead } = require('../controllers/chat.controllers');
 const { authenticate } = require('../middlewares/auth.middleware');
 const { getOnlineUsers } = require('../utils/onlineUsers');
 const User = require('../model/user.model');
 
 /**
  * @swagger
- * /api/chat/messages/{receiverId}:
+ * /api/chat/messages/{userId}:
  *   get:
  *     tags: ['Chat']
  *     summary: Lấy tin nhắn giữa hai user
@@ -15,15 +15,68 @@ const User = require('../model/user.model');
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: receiverId
+ *         name: userId
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID của user muốn lấy lịch sử chat
  *     responses:
  *       200:
  *         description: Danh sách tin nhắn
  */
-router.get('/messages/:receiverId', authenticate, getMessages);
+router.get('/messages/:userId', authenticate, getMessages);
+
+/**
+ * @swagger
+ * /api/chat/conversations:
+ *   get:
+ *     tags: ['Chat']
+ *     summary: Lấy danh sách cuộc trò chuyện của user hiện tại
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Danh sách cuộc trò chuyện
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 conversations:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       user:
+ *                         type: object
+ *                         properties:
+ *                           userId:
+ *                             type: integer
+ *                           fullname:
+ *                             type: string
+ *                           avatar:
+ *                             type: string
+ *                       lastMessage:
+ *                         type: object
+ *                         properties:
+ *                           messageId:
+ *                             type: integer
+ *                           senderId:
+ *                             type: integer
+ *                           receiverId:
+ *                             type: integer
+ *                           message:
+ *                             type: string
+ *                           isRead:
+ *                             type: boolean
+ *                           createdAt:
+ *                             type: string
+ *                           updatedAt:
+ *                             type: string
+ *                       unreadCount:
+ *                         type: integer
+ */
+router.get('/conversations', authenticate, getConversations);
 
 /**
  * @swagger
@@ -42,8 +95,10 @@ router.get('/messages/:receiverId', authenticate, getMessages);
  *             properties:
  *               receiverId:
  *                 type: integer
+ *                 description: ID của user nhận tin nhắn
  *               message:
  *                 type: string
+ *                 description: Nội dung tin nhắn
  *     responses:
  *       200:
  *         description: Gửi thành công
@@ -112,6 +167,7 @@ router.get('/online-users', authenticate, async (req, res) => {
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID của user gửi tin nhắn cần đánh dấu đã đọc
  *     responses:
  *       200:
  *         description: Đã đánh dấu đã đọc

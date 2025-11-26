@@ -36,4 +36,9 @@ const Message = sequelize.define('Message', {
     timestamps: true,
 });
 
+// Associations
+const User = require('./user.model');
+Message.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
+Message.belongsTo(User, { foreignKey: 'receiverId', as: 'receiver' });
+
 module.exports = Message;

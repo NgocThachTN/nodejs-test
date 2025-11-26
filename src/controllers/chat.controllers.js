@@ -1,17 +1,28 @@
-const { getMessagesBetweenUsers, sendMessage, markMessagesAsRead } = require('../services/chat.services');
+const { getMessagesBetweenUsers, getConversationsForUser, sendMessage, markMessagesAsRead } = require('../services/chat.services');
 
 // Lấy tin nhắn giữa hai user
 const getMessages = async (req, res) => {
     try {
-        const { receiverId } = req.params;
+        const { userId } = req.params;
         const senderId = req.user.userId; // Từ auth middleware
 
-        if (!receiverId) {
-            return res.status(400).json({ message: 'Thiếu receiverId' });
+        if (!userId) {
+            return res.status(400).json({ message: 'Thiếu userId' });
         }
 
-        const messages = await getMessagesBetweenUsers(senderId, parseInt(receiverId));
+        const messages = await getMessagesBetweenUsers(senderId, parseInt(userId));
         res.json({ messages });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Lấy danh sách cuộc trò chuyện
+const getConversations = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const conversations = await getConversationsForUser(userId);
+        res.json({ conversations });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -49,6 +60,7 @@ const markAsRead = async (req, res) => {
 
 module.exports = {
     getMessages,
+    getConversations,
     sendMessageController,
     markAsRead,
 };
