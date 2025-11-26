@@ -129,4 +129,28 @@ router.post("/", authenticate, authorizeAdmin, userController.createUser);
 router.put("/:userId", authenticate, authorizeAdmin, userController.updateUser);
 router.delete("/:userId", authenticate, authorizeAdmin, userController.deleteUser);
 
+/**
+ * @swagger
+ * /api/users/{userId}:
+ *   get:
+ *     tags: ["User"]
+ *     summary: Lấy thông tin user theo ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Thông tin user
+ *       401:
+ *         description: Chưa đăng nhập
+ *       404:
+ *         description: User không tồn tại
+ */
+router.get("/:userId", authenticate, userController.getUserById);
+
 module.exports = router;

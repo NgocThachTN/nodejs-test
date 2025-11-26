@@ -6,6 +6,9 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const session = require("express-session");
+const http = require("http");
+const socketIo = require("socket.io");
+const jwt = require("jsonwebtoken");
 
 // Kết nối DB
 const sequelize = require("./src/config/database");
@@ -15,6 +18,7 @@ require("./src/model/user.model");
 require("./src/model/comment.model");
 require("./src/model/favorite.model");
 require("./src/model/readingHistory.model");
+require("./src/model/message.model");
 
 // Import routes
 const authRoute = require("./src/routes/auth.routes");
@@ -23,8 +27,17 @@ const commentRoute = require("./src/routes/comment.routes");
 const favoriteRoute = require("./src/routes/favorite.routes");
 const readingHistoryRoute = require("./src/routes/readingHistory.routes");
 const profileRoute = require("./src/routes/profile.routes");
+const chatRoute = require("./src/routes/chat.routes");
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: true,
+    credentials: true,
+  },
+});
+
 const port = process.env.PORT || 3000;
 
 // Enable CORS
@@ -125,6 +138,11 @@ const swaggerOptions = {
         },
       },
     },
+    tags: [
+      {
+        name: 'Chat',
+      }
+    ],
   },
   apis: ["./index.js", "./src/routes/*.js"],
 };
@@ -157,6 +175,7 @@ app.use("/api/comments", commentRoute);
 app.use("/api/favorites", favoriteRoute);
 app.use("/api/reading-history", readingHistoryRoute);
 app.use("/api/profile", profileRoute);
+app.use("/api/chat", chatRoute);
 // Example Hello API
 /**
  * @swagger
@@ -175,7 +194,72 @@ app.get("/api/hello", (req, res) => {
 app.get("/api/auth", (req, res) => {
   res.json({ message: "Auth route working!" });
 });
-// ------------------ SYNC DB ----------------------
+const { addUser, removeUser, getOnlineUsers } = require('./src/utils/onlineUsers');
+
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth.token;
+    if (!token) {
+      return next(new Error('Authentication error'));
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.userId;
+    next();
+  } catch (err) {
+    next(new Error('Authentication error'));
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log(`User ${socket.userId} connected`);
+
+  // Thêm user vào online
+  addUser(socket.userId, socket.id);
+
+  // Phát danh sách online users
+  io.emit('onlineUsers', getOnlineUsers());
+
+  // Join room cho chat riêng tư
+  socket.on('joinChat', (otherUserId) => {
+    const room = [socket.userId, otherUserId].sort().join('-');
+    socket.join(room);
+  });
+
+  // Nhận tin nhắn
+  socket.on('sendMessage', async (data) => {
+    try {
+      const { receiverId, message } = data;
+      const senderId = socket.userId;
+
+      // Lưu vào DB
+      const { sendMessage } = require('./src/services/chat.services');
+      const newMessage = await sendMessage(senderId, receiverId, message);
+
+      // Phát tin nhắn đến room
+      const room = [senderId, receiverId].sort().join('-');
+      io.to(room).emit('newMessage', newMessage);
+    } catch (err) {
+      socket.emit('error', err.message);
+    }
+  });
+
+  // Đánh dấu đã đọc
+  socket.on('markAsRead', async (senderId) => {
+    try {
+      const receiverId = socket.userId;
+      const { markMessagesAsRead } = require('./src/services/chat.services');
+      await markMessagesAsRead(senderId, receiverId);
+    } catch (err) {
+      socket.emit('error', err.message);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`User ${socket.userId} disconnected`);
+    removeUser(socket.userId);
+    io.emit('onlineUsers', getOnlineUsers());
+  });
+});
 sequelize
   .authenticate()
   .then(() => {
@@ -189,7 +273,7 @@ sequelize
   });
 
 // ------------------ START SERVER -----------------
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server chạy trên port ${port}`);
   console.log(`Swagger docs: https://${process.env.RENDER_EXTERNAL_URL || 'your-render-url.onrender.com'}/api/swagger.html`);
 });
