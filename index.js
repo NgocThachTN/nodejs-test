@@ -194,7 +194,7 @@ app.get("/api/hello", (req, res) => {
 app.get("/api/auth", (req, res) => {
   res.json({ message: "Auth route working!" });
 });
-const { addUser, removeUser, getOnlineUsers } = require('./src/utils/onlineUsers');
+const { addUser, removeUser, getOnlineUsers, isUserOnline, onlineUsers } = require('./src/utils/onlineUsers');
 
 io.use(async (socket, next) => {
   try {
@@ -235,7 +235,13 @@ io.on('connection', (socket) => {
       const { sendMessage } = require('./src/services/chat.services');
       const newMessage = await sendMessage(senderId, receiverId, message);
 
-      // Phát tin nhắn đến room
+      // Emit trực tiếp đến receiver nếu online
+      if (isUserOnline(receiverId)) {
+        const receiverSocketId = onlineUsers.get(receiverId);
+        io.to(receiverSocketId).emit('newMessage', newMessage);
+      }
+
+      // Emit đến room (cho trường hợp cả 2 đã mở chat)
       const room = [senderId, receiverId].sort().join('-');
       io.to(room).emit('newMessage', newMessage);
     } catch (err) {
