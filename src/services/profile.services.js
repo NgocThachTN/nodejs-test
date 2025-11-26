@@ -18,7 +18,8 @@ class ProfileService {
 
             const favorites = await FavoriteService.getFavorites(userId);
             const readingHistory = await ReadingHistoryService.getReadingHistory(userId);
-            const isOnline = isUserOnline(userId);
+            // User online nếu lastSeenAt trong 5 phút gần đây
+            const isOnline = userData.lastSeenAt && (new Date() - new Date(userData.lastSeenAt)) < 5 * 60 * 1000;
             return {
                 user: userData,
                 favorites,
@@ -42,7 +43,8 @@ class ProfileService {
 
             const favorites = await FavoriteService.getFavorites(userId);
             const readingHistory = await ReadingHistoryService.getReadingHistory(userId);
-            const isOnline = isUserOnline(userId);
+            // User online nếu lastSeenAt trong 5 phút gần đây
+            const isOnline = userData.lastSeenAt && (new Date() - new Date(userData.lastSeenAt)) < 5 * 60 * 1000;
             return {
                 user: userData,
                 favorites,
