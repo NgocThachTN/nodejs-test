@@ -13,7 +13,7 @@ class AuthService {
                 role: user.role,
             },
             process.env.JWT_SECRET,
-            { expiresIn: "15m" } // Short lived access token
+            { expiresIn: "12h" } // Access token dài hơn: 12 tiếng
         );
 
         const refreshToken = jwt.sign(
